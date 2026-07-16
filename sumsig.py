@@ -1,7 +1,6 @@
 # ============================================================
 # 💗 썸 시그널 분석기
-# 실행 명령어:
-# streamlit run .py
+# 실행: streamlit run final_project_starter.py
 # ============================================================
 
 import time
@@ -11,75 +10,324 @@ import streamlit as st
 
 
 # ============================================================
-# 페이지 기본 설정
+# 페이지 설정
 # ============================================================
 st.set_page_config(
     page_title="썸 시그널 분석기",
     page_icon="💗",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 
 # ============================================================
-# CSS 디자인
+# 디자인 CSS
 # ============================================================
 st.markdown(
     """
     <style>
-    .main-title {
+    /* -------------------------------------------------------
+       전체 색상 및 기본 디자인
+    ------------------------------------------------------- */
+    :root {
+        --pink-main: #e96f9d;
+        --pink-dark: #b84772;
+        --pink-soft: #fff1f6;
+        --pink-pale: #fff8fb;
+        --rose-border: #f5d7e3;
+        --lavender: #f5f0ff;
+        --text-main: #3c3036;
+        --text-sub: #7e6a73;
+    }
+
+    .stApp {
+        background:
+            radial-gradient(circle at 5% 5%, #fff1f7 0, transparent 28%),
+            radial-gradient(circle at 95% 15%, #f8f2ff 0, transparent 24%),
+            linear-gradient(180deg, #fffdfd 0%, #fff8fb 100%);
+    }
+
+    html, body, [class*="css"] {
+        color: var(--text-main);
+    }
+
+    /* -------------------------------------------------------
+       상단 제목 영역
+    ------------------------------------------------------- */
+    .hero {
         text-align: center;
-        font-size: 42px;
-        font-weight: 800;
-        margin-bottom: 5px;
+        padding: 24px 20px 16px;
     }
 
-    .sub-title {
-        text-align: center;
-        color: #777777;
-        font-size: 17px;
-        margin-bottom: 30px;
-    }
-
-    .signal-card {
-        padding: 22px;
-        border-radius: 18px;
-        background-color: #fff5f8;
-        border: 1px solid #ffd4df;
-        margin-bottom: 15px;
-    }
-
-    .result-title {
-        font-size: 23px;
+    .hero-badge {
+        display: inline-block;
+        padding: 7px 15px;
+        border-radius: 999px;
+        background: #fff0f5;
+        border: 1px solid #f4cedd;
+        color: #b84772;
+        font-size: 13px;
         font-weight: 700;
-        margin-bottom: 10px;
+        letter-spacing: 0.04em;
+        margin-bottom: 14px;
     }
 
-    .warning-box {
-        padding: 16px;
-        border-radius: 12px;
-        background-color: #fff8e8;
-        border: 1px solid #ffe0a3;
+    .hero-title {
+        font-size: clamp(34px, 5vw, 52px);
+        font-weight: 850;
+        letter-spacing: -0.05em;
+        color: #3c3036;
+        margin-bottom: 8px;
+    }
+
+    .hero-title span {
+        color: #d95d8d;
+    }
+
+    .hero-description {
+        max-width: 680px;
+        margin: 0 auto;
+        color: #806c75;
+        font-size: 16px;
+        line-height: 1.75;
+    }
+
+    /* -------------------------------------------------------
+       카드
+    ------------------------------------------------------- */
+    .love-card {
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid #f2dbe4;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 14px 36px rgba(168, 79, 113, 0.07);
+        margin-bottom: 18px;
+    }
+
+    .result-card {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 242, 247, 0.95),
+                rgba(250, 246, 255, 0.95)
+            );
+        border: 1px solid #f0d5e1;
+        border-radius: 24px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .result-label {
+        color: #b84772;
+        font-size: 13px;
+        font-weight: 750;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+    }
+
+    .result-grade {
+        font-size: 27px;
+        font-weight: 850;
+        letter-spacing: -0.04em;
+        margin-bottom: 9px;
+    }
+
+    .result-summary {
+        color: #74626a;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    /* -------------------------------------------------------
+       점수 게이지
+    ------------------------------------------------------- */
+    .gauge-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px 0 20px;
+    }
+
+    .gauge {
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 16px 32px rgba(207, 85, 133, 0.13);
+    }
+
+    .gauge::before {
+        content: "";
+        position: absolute;
+        width: 145px;
+        height: 145px;
+        background: #fffdfd;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px #fae8ef;
+    }
+
+    .gauge-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+    }
+
+    .gauge-score {
+        font-size: 45px;
+        font-weight: 900;
+        line-height: 1;
+        color: #c84e7d;
+        letter-spacing: -0.06em;
+    }
+
+    .gauge-unit {
+        margin-top: 7px;
+        font-size: 14px;
+        color: #8f737e;
+        font-weight: 700;
+    }
+
+    /* -------------------------------------------------------
+       시그널 칩
+    ------------------------------------------------------- */
+    .signal-chip {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 13px 15px;
+        border-radius: 15px;
+        margin-bottom: 9px;
+        line-height: 1.55;
+        font-size: 14px;
+    }
+
+    .positive-chip {
+        background: #fff0f5;
+        border: 1px solid #f5d4e1;
+        color: #684651;
+    }
+
+    .caution-chip {
+        background: #fff8ef;
+        border: 1px solid #f2e0c8;
+        color: #6e5943;
+    }
+
+    .neutral-chip {
+        background: #f7f3ff;
+        border: 1px solid #e6dcf7;
+        color: #5b506d;
+    }
+
+    /* -------------------------------------------------------
+       추천 답장
+    ------------------------------------------------------- */
+    .reply-card {
+        background: #fff;
+        border: 1px solid #f0d4df;
+        border-left: 5px solid #df6996;
+        border-radius: 18px;
+        padding: 20px;
+        margin: 12px 0;
+        color: #4b3840;
+        font-size: 16px;
+        line-height: 1.7;
+    }
+
+    .tip-card {
+        background: #f7f2ff;
+        border: 1px solid #e8ddf8;
+        border-radius: 16px;
+        padding: 16px 18px;
+        color: #5f536c;
+        margin-top: 12px;
+    }
+
+    /* -------------------------------------------------------
+       Streamlit 기본 요소 수정
+    ------------------------------------------------------- */
+    div[data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid #f1dae3;
+        padding: 17px;
+        border-radius: 18px;
+        box-shadow: 0 8px 22px rgba(160, 80, 110, 0.05);
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #c44f7c;
+    }
+
+    div[data-testid="stSidebar"] {
+        background:
+            linear-gradient(
+                180deg,
+                #fff8fb 0%,
+                #fdf7ff 100%
+            );
+        border-right: 1px solid #f2dce5;
+    }
+
+    div[data-testid="stChatMessage"] {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid #f2dde5;
+        border-radius: 18px;
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+
+    .stButton > button {
+        border-radius: 14px;
+        min-height: 44px;
+        font-weight: 700;
+        border: 1px solid #edcbd8;
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #dc668f, #c84d7b);
+        color: white;
+        border: none;
+        box-shadow: 0 8px 20px rgba(201, 76, 123, 0.18);
+    }
+
+    .stTextInput input,
+    .stTextArea textarea,
+    div[data-baseweb="select"] > div {
+        border-radius: 14px;
+    }
+
+    button[data-baseweb="tab"] {
+        font-weight: 700;
+    }
+
+    /* 외부 링크 버튼 숨김 */
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
     }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
 # ============================================================
-# 함수 1: 세션 상태 초기화
+# 세션 상태 초기화
 # ============================================================
 def initialize_session_state():
-    """앱에서 사용할 세션 상태를 초기화합니다."""
-
     default_values = {
         "nickname": "",
         "messages": [],
-        "history": [],
         "score_history": [],
         "analysis_count": 0,
         "celebrated": False,
-        "last_result": None
+        "last_result": None,
     }
 
     for key, value in default_values.items():
@@ -87,294 +335,431 @@ def initialize_session_state():
             st.session_state[key] = value
 
 
-# ============================================================
-# 함수 2: 메시지 전처리
-# ============================================================
-def clean_message(message):
-    """입력한 메시지의 앞뒤 공백을 제거합니다."""
-
-    return message.strip()
+initialize_session_state()
 
 
 # ============================================================
-# 함수 3: 썸 시그널 분석
+# 메시지 분석
 # ============================================================
 def analyze_signal(message, relationship_stage):
-    """
-    상대방 메시지의 표현을 기반으로 썸 시그널 점수를 계산합니다.
-
-    주의:
-    이 결과는 키워드 기반 참고용 분석이며,
-    상대방의 실제 감정을 확정하지 않습니다.
-    """
-
-    message = clean_message(message)
+    message = message.strip()
     lower_message = message.lower()
 
-    score = 50
+    score = 46
+
     positive_signals = []
     caution_signals = []
 
-    # --------------------------------------------------------
-    # 긍정 신호 키워드
-    # --------------------------------------------------------
+    category_scores = {
+        "대화 지속성": 40,
+        "관심 표현": 40,
+        "정서적 온도": 45,
+        "구체성": 40,
+    }
+
     positive_keywords = {
-        "보고 싶": 12,
-        "또 보": 12,
+        "보고 싶": 14,
+        "또 보": 13,
         "다음에": 10,
         "같이": 7,
         "즐거웠": 10,
         "재밌었": 9,
-        "좋았": 8,
+        "좋았": 7,
         "궁금": 6,
-        "뭐 해": 6,
-        "잘 들어갔": 7,
+        "뭐 해": 7,
+        "잘 들어갔": 8,
         "조심히": 5,
-        "연락해": 6,
+        "연락해": 5,
         "기다릴": 8,
         "시간 돼": 10,
         "언제 시간": 11,
-        "맛있는 거": 6,
-        "생각나": 10,
+        "생각나": 11,
+        "약속": 8,
+        "맛있는": 5,
         "ㅋㅋ": 3,
         "ㅎㅎ": 3,
         "😊": 4,
+        "🥰": 8,
         "😍": 7,
         "❤️": 8,
         "💕": 8,
-        "🥰": 8
+    }
+
+    caution_keywords = {
+        "바빠": -7,
+        "나중에": -4,
+        "언젠가": -6,
+        "글쎄": -7,
+        "모르겠": -6,
+        "피곤": -4,
+        "연락할게": -3,
+        "시간 되면": -5,
+        "기회 되면": -6,
+        "ㅇㅇ": -6,
+        "넵": -3,
     }
 
     for keyword, value in positive_keywords.items():
         if keyword in lower_message:
             score += value
-            positive_signals.append(f"'{keyword}' 표현이 포함되어 있습니다.")
+            positive_signals.append(
+                f"‘{keyword}’ 표현에서 친근함이나 관심의 가능성이 보여요."
+            )
 
-    # --------------------------------------------------------
-    # 주의 신호 키워드
-    # --------------------------------------------------------
-    negative_keywords = {
-        "바빠": -7,
-        "나중에": -4,
-        "언젠가": -5,
-        "글쎄": -7,
-        "모르겠": -5,
-        "피곤": -4,
-        "연락할게": -3,
-        "시간 되면": -5,
-        "기회 되면": -6,
-        "네": -2,
-        "넵": -2,
-        "ㅇㅇ": -5,
-        "아니": -3
-    }
+            if keyword in ["다음에", "또 보", "시간 돼", "언제 시간", "약속"]:
+                category_scores["대화 지속성"] += 18
+                category_scores["관심 표현"] += 15
 
-    for keyword, value in negative_keywords.items():
+            elif keyword in ["보고 싶", "생각나", "궁금"]:
+                category_scores["관심 표현"] += 22
+                category_scores["정서적 온도"] += 15
+
+            elif keyword in ["ㅋㅋ", "ㅎㅎ", "😊", "🥰", "😍", "❤️", "💕"]:
+                category_scores["정서적 온도"] += 17
+
+            else:
+                category_scores["관심 표현"] += 9
+
+    for keyword, value in caution_keywords.items():
         if keyword in lower_message:
             score += value
-            caution_signals.append(f"'{keyword}' 표현은 상황에 따라 거리감이 느껴질 수 있습니다.")
+            caution_signals.append(
+                f"‘{keyword}’ 표현은 상황에 따라 거리감으로 느껴질 수 있어요."
+            )
+            category_scores["관심 표현"] -= 8
+            category_scores["대화 지속성"] -= 6
 
-    # --------------------------------------------------------
-    # 문장 구조 분석
-    # --------------------------------------------------------
+    # 질문 분석
     question_count = message.count("?") + message.count("？")
 
     if question_count > 0:
-        score += 8
-        positive_signals.append("질문이 있어 대화를 이어가려는 모습이 보입니다.")
+        score += 9
+        category_scores["대화 지속성"] += 24
+        category_scores["구체성"] += 8
+        positive_signals.append(
+            "질문이 포함되어 있어 대화를 이어가려는 흐름이 보여요."
+        )
     else:
-        caution_signals.append("질문이 없어 대화가 자연스럽게 종료될 가능성이 있습니다.")
+        caution_signals.append(
+            "질문이 없어 현재 메시지만으로는 대화 지속 의도를 판단하기 어려워요."
+        )
 
-    # 메시지 길이 분석
+    # 길이 분석
     message_length = len(message)
 
-    if message_length >= 40:
-        score += 7
-        positive_signals.append("비교적 구체적이고 긴 메시지입니다.")
+    if message_length >= 45:
+        score += 8
+        category_scores["구체성"] += 28
+        positive_signals.append(
+            "메시지가 비교적 길고 구체적이어서 성의 있는 답장으로 볼 수 있어요."
+        )
+
     elif message_length >= 20:
-        score += 3
-        positive_signals.append("성의 있는 길이의 메시지입니다.")
+        score += 4
+        category_scores["구체성"] += 17
+        positive_signals.append(
+            "메시지 길이가 적당하고 내용이 비교적 구체적이에요."
+        )
+
     elif message_length <= 5:
-        score -= 12
-        caution_signals.append("답장이 매우 짧아 추가적인 맥락 확인이 필요합니다.")
+        score -= 14
+        category_scores["구체성"] -= 20
+        category_scores["대화 지속성"] -= 12
+        caution_signals.append(
+            "답장이 매우 짧아 앞뒤 대화 맥락을 함께 확인해야 해요."
+        )
+
     elif message_length <= 10:
-        score -= 5
-        caution_signals.append("메시지가 다소 짧은 편입니다.")
+        score -= 6
+        category_scores["구체성"] -= 10
+        caution_signals.append(
+            "메시지가 짧은 편이라 단정하기에는 정보가 부족해요."
+        )
 
-    # 이모티콘 분석
-    emoji_list = ["😊", "😄", "😍", "🥰", "❤️", "💕", "☺️", "😆", "ㅋㅋ", "ㅎㅎ"]
-
-    if any(emoji in message for emoji in emoji_list):
-        score += 5
-        positive_signals.append("웃음 표현이나 이모티콘으로 부드러운 분위기를 만들고 있습니다.")
-
-    # 관계 단계에 따른 점수 보정
-    if relationship_stage == "소개팅 전":
-        score -= 2
-    elif relationship_stage == "소개팅 직후":
+    # 느낌표 분석
+    if "!" in message:
         score += 3
-    elif relationship_stage == "연락 중":
-        score += 2
-    elif relationship_stage == "두 번째 만남 준비":
-        score += 5
+        category_scores["정서적 온도"] += 8
+        positive_signals.append(
+            "느낌표가 포함되어 있어 비교적 밝은 감정 표현으로 보일 수 있어요."
+        )
 
-    # 점수 범위 제한
+    # 관계 단계 보정
+    stage_bonus = {
+        "소개팅 전": -2,
+        "소개팅 직후": 4,
+        "연락 중": 2,
+        "두 번째 만남 준비": 6,
+    }
+
+    score += stage_bonus.get(relationship_stage, 0)
+
+    # 범위 제한
     score = max(0, min(score, 100))
 
-    # 중복 제거
+    for category in category_scores:
+        category_scores[category] = max(
+            0,
+            min(category_scores[category], 100),
+        )
+
     positive_signals = list(dict.fromkeys(positive_signals))
     caution_signals = list(dict.fromkeys(caution_signals))
 
-    # 분석 문구 결정
     if score >= 85:
-        grade = "매우 높은 관심 신호"
-        summary = "상대방이 대화를 적극적으로 이어가고 싶어 하는 표현이 여러 개 발견되었습니다."
+        grade = "두근두근, 강한 관심 신호"
+        summary = (
+            "대화를 이어가려는 표현과 정서적인 친밀감이 함께 나타났어요. "
+            "자연스럽게 다음 만남을 제안해 볼 수 있는 흐름입니다."
+        )
         emoji = "💖"
+        signal_level = "매우 긍정적"
 
     elif score >= 70:
-        grade = "긍정적인 관심 신호"
-        summary = "호감으로 볼 수 있는 표현이 있으나, 대화 흐름을 함께 살펴보는 것이 좋습니다."
+        grade = "기분 좋은 호감 신호"
+        summary = (
+            "호감으로 해석할 수 있는 표현이 여러 개 보여요. "
+            "상대방의 대화 속도와 분위기에 맞춰 천천히 이어가 보세요."
+        )
         emoji = "💗"
+        signal_level = "긍정적"
 
     elif score >= 55:
-        grade = "조금 더 지켜볼 단계"
-        summary = "긍정적인 요소는 있지만 아직 상대방의 마음을 단정하기에는 정보가 부족합니다."
+        grade = "은근한 관심 가능성"
+        summary = (
+            "긍정적인 요소가 있지만 아직 확실한 판단을 내리기에는 "
+            "대화 정보가 조금 부족해요."
+        )
         emoji = "💓"
+        signal_level = "관찰 필요"
 
     elif score >= 40:
-        grade = "중립적인 신호"
-        summary = "예의 있는 답장일 가능성이 있습니다. 한두 번의 메시지만으로 판단하지 않는 것이 좋습니다."
+        grade = "조금 더 지켜볼 단계"
+        summary = (
+            "현재 메시지는 예의 있는 답장이나 일상적인 대화일 수 있어요. "
+            "메시지 한 번보다 반복되는 행동을 살펴보세요."
+        )
         emoji = "💬"
+        signal_level = "중립"
 
     else:
-        grade = "거리감이 느껴질 수 있는 신호"
-        summary = "현재 메시지만 보면 적극적인 관심은 크지 않을 수 있습니다. 무리하게 대화를 이어가지는 마세요."
+        grade = "거리 조절이 필요한 신호"
+        summary = (
+            "현재 메시지만 보면 적극적인 관심은 크지 않을 수 있어요. "
+            "답장을 재촉하거나 과도하게 의미를 부여하지 않는 편이 좋습니다."
+        )
         emoji = "🩶"
+        signal_level = "거리감 가능"
 
     return {
         "score": score,
         "grade": grade,
         "summary": summary,
         "emoji": emoji,
+        "signal_level": signal_level,
         "positive_signals": positive_signals,
-        "caution_signals": caution_signals
+        "caution_signals": caution_signals,
+        "category_scores": category_scores,
     }
 
 
 # ============================================================
-# 함수 4: 답장 추천
+# 답장 추천
 # ============================================================
-def recommend_reply(message, tone, relationship_stage, result):
-    """분석 결과와 선택한 말투에 맞는 답장을 추천합니다."""
-
-    score = result["score"]
-
-    reply_options = {
+def recommend_reply(tone, relationship_stage, result):
+    replies = {
         "부담 없게": [
             "저도 즐거웠어요! 조심히 들어가셨죠? 다음에 또 편하게 봬요 😊",
-            "오늘 즐거웠어요. 들어가시는 길 조심하시고 다음에 또 이야기 나눠요!",
-            "저도 좋은 시간이었어요! 남은 하루도 편하게 보내세요 😊"
+            "오늘 좋은 시간이었어요. 남은 하루도 편안하게 보내세요!",
+            "저도 즐거웠어요! 다음에 맛있는 거 먹으면서 또 이야기해요 😊",
         ],
-
         "다정하게": [
             "저도 오늘 정말 즐거웠어요 😊 덕분에 시간 가는 줄 몰랐네요. 조심히 들어가세요!",
             "오늘 만나서 정말 반가웠어요. 이야기 나누는 시간이 편하고 좋았어요 💗",
-            "저도 즐거웠어요! 집에 잘 들어가셨는지 궁금했어요. 푹 쉬세요 😊"
+            "저도 즐거웠어요! 집에는 잘 들어가셨죠? 푹 쉬세요 😊",
         ],
-
         "유머러스하게": [
             "저도 즐거웠어요! 시간 순삭의 범인은 아무래도 우리였던 것 같네요 😆",
-            "오늘 정말 재미있었어요. 다음에는 더 맛있는 메뉴로 2차 면접 진행하시죠 😄",
-            "저도 즐거웠어요! 대화가 너무 잘 통해서 시간 확인을 깜빡했네요 ㅋㅋ"
+            "오늘 재미있었어요. 다음에는 더 맛있는 메뉴로 2차 면접 진행하시죠 😄",
+            "대화가 너무 잘 통해서 시간 확인을 깜빡했네요 ㅋㅋ 다음에 또 봬요!",
         ],
-
         "적극적으로": [
             "저도 정말 즐거웠어요! 다음에 또 만나고 싶은데 이번 주말은 어떠세요? 😊",
-            "오늘 이야기 나누는 시간이 좋았어요. 괜찮으시면 다음에는 제가 맛있는 곳 찾아볼게요!",
-            "저도 즐거웠어요. 다음에 또 뵙고 싶은데 시간 괜찮은 날 알려주세요 💗"
+            "오늘 이야기 나누는 시간이 좋았어요. 다음에는 제가 맛있는 곳 찾아볼게요!",
+            "저도 즐거웠어요. 다음 만남은 제가 먼저 제안해도 될까요? 💗",
         ],
-
         "예의 바르게": [
             "저도 오늘 즐거운 시간이었습니다. 조심히 들어가시고 편안한 저녁 보내세요.",
             "오늘 만나 뵙게 되어 반가웠습니다. 좋은 시간 만들어 주셔서 감사합니다 😊",
-            "저도 즐거웠습니다. 귀가길 조심하시고 다음에 또 좋은 기회로 뵙겠습니다."
-        ]
+            "저도 즐거웠습니다. 귀가길 조심하시고 다음에 또 뵙겠습니다.",
+        ],
     }
 
-    selected_replies = reply_options.get(tone, reply_options["부담 없게"])
-    reply = random.choice(selected_replies)
+    reply = random.choice(replies[tone])
 
-    # 호감 점수가 낮을 때는 적극적인 말투를 조금 완화
-    if score < 45 and tone == "적극적으로":
+    if result["score"] < 45 and tone == "적극적으로":
         reply = (
-            "오늘 만나서 반가웠어요! 조심히 들어가시고 "
+            "오늘 만나서 반가웠어요. 조심히 들어가시고 "
             "편안한 저녁 보내세요 😊"
         )
 
-    # 관계 단계별 보조 문장
-    if relationship_stage == "소개팅 전":
-        tip = "소개팅 전에는 너무 긴 답장보다 약속 시간과 장소를 명확하게 확인하는 것이 좋습니다."
+    tips = {
+        "소개팅 전": (
+            "약속 전에는 감정 표현보다 시간과 장소를 명확히 확인하는 것이 좋아요."
+        ),
+        "소개팅 직후": (
+            "즐거웠다는 표현과 함께 귀가 여부를 묻는 답장이 자연스러워요."
+        ),
+        "연락 중": (
+            "상대방의 답장 길이와 속도에 비슷한 텐션으로 맞춰보세요."
+        ),
+        "두 번째 만남 준비": (
+            "날짜와 활동을 구체적으로 제안하면 관계가 더 자연스럽게 진전돼요."
+        ),
+    }
 
-    elif relationship_stage == "소개팅 직후":
-        tip = "소개팅 직후에는 즐거웠다는 감정과 귀가 여부를 함께 묻는 답장이 자연스럽습니다."
-
-    elif relationship_stage == "연락 중":
-        tip = "상대방의 답장 길이와 속도에 맞춰 비슷한 정도의 텐션을 유지해 보세요."
-
-    else:
-        tip = "두 번째 만남을 준비 중이라면 구체적인 날짜나 활동을 제안하는 것이 좋습니다."
-
-    return reply, tip
-
-
-# ============================================================
-# 함수 5: 초기화
-# ============================================================
-initialize_session_state()
+    return reply, tips[relationship_stage]
 
 
 # ============================================================
-# 진입 게이트
+# 게이지 HTML
+# ============================================================
+def render_signal_gauge(score):
+    gauge_color = "#d95f8c"
+
+    if score < 40:
+        gauge_color = "#b9aeb2"
+    elif score < 55:
+        gauge_color = "#d7a2b5"
+    elif score < 70:
+        gauge_color = "#e58cae"
+    elif score < 85:
+        gauge_color = "#df6c98"
+
+    st.markdown(
+        f"""
+        <div class="gauge-wrapper">
+            <div
+                class="gauge"
+                style="
+                    background:
+                    conic-gradient(
+                        {gauge_color} 0deg,
+                        {gauge_color} {score * 3.6}deg,
+                        #f6e7ed {score * 3.6}deg,
+                        #f6e7ed 360deg
+                    );
+                "
+            >
+                <div class="gauge-content">
+                    <div class="gauge-score">{score}</div>
+                    <div class="gauge-unit">SIGNAL SCORE</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# 시그널 칩 출력
+# ============================================================
+def render_signal_chip(text, chip_type="positive"):
+    class_name = {
+        "positive": "positive-chip",
+        "caution": "caution-chip",
+        "neutral": "neutral-chip",
+    }[chip_type]
+
+    icon = {
+        "positive": "💗",
+        "caution": "🔍",
+        "neutral": "✨",
+    }[chip_type]
+
+    st.markdown(
+        f"""
+        <div class="signal-chip {class_name}">
+            <span>{icon}</span>
+            <span>{text}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# 진입 화면
 # ============================================================
 if not st.session_state.nickname:
     st.markdown(
-        '<div class="main-title">💗 썸 시그널 분석기</div>',
-        unsafe_allow_html=True
+        """
+        <div class="hero">
+            <div class="hero-badge">LOVE SIGNAL LAB</div>
+            <div class="hero-title">
+                메시지 속 <span>썸 시그널</span>을 발견해요
+            </div>
+            <div class="hero-description">
+                상대방의 메시지에 담긴 관심 표현, 대화 지속성,
+                정서적인 온도를 분석하고 자연스러운 답장까지 추천해 드려요.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.markdown(
-        '<div class="sub-title">'
-        '상대방의 메시지 속 호감 신호를 분석하고 자연스러운 답장을 추천해 드려요.'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    left, center, right = st.columns([1, 1.25, 1])
 
-    col1, col2, col3 = st.columns([1, 2, 1])
-
-    with col2:
-        st.image(
-            "https://images.unsplash.com/photo-1518199266791-5375a83190b7"
-            "?auto=format&fit=crop&w=1200&q=80",
-            use_container_width=True
+    with center:
+        st.markdown(
+            """
+            <div class="love-card">
+                <div style="
+                    text-align:center;
+                    font-size:42px;
+                    margin-bottom:8px;
+                ">
+                    💌
+                </div>
+                <div style="
+                    text-align:center;
+                    font-weight:800;
+                    font-size:20px;
+                    margin-bottom:5px;
+                ">
+                    나만의 시그널 분석실
+                </div>
+                <div style="
+                    text-align:center;
+                    color:#8a737c;
+                    margin-bottom:20px;
+                    font-size:14px;
+                ">
+                    시작하기 전에 사용할 닉네임을 알려주세요.
+                </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-        name = st.text_input(
-            "사용할 닉네임을 입력하세요",
-            placeholder="예: 민영"
+        nickname = st.text_input(
+            "닉네임",
+            placeholder="예: 민영",
+            label_visibility="collapsed",
         )
 
         if st.button(
-            "💓 두근두근 시작하기",
+            "분석 시작하기 💗",
             type="primary",
-            use_container_width=True
-        ) and name.strip():
+            use_container_width=True,
+        ):
+            if nickname.strip():
+                st.session_state.nickname = nickname.strip()
+                st.rerun()
+            else:
+                st.warning("닉네임을 입력해 주세요.")
 
-            st.session_state.nickname = name.strip()
-            st.rerun()
-
-        st.caption(
-            "입력한 메시지는 현재 Streamlit 세션에서만 분석됩니다."
-        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.stop()
 
@@ -383,7 +768,28 @@ if not st.session_state.nickname:
 # 사이드바
 # ============================================================
 with st.sidebar:
-    st.title(f"💗 {st.session_state.nickname}님의 분석실")
+    st.markdown(
+        f"""
+        <div style="padding:8px 0 16px;">
+            <div style="
+                color:#b34c74;
+                font-size:13px;
+                font-weight:750;
+                letter-spacing:.05em;
+            ">
+                MY SIGNAL ROOM
+            </div>
+            <div style="
+                font-size:23px;
+                font-weight:850;
+                margin-top:5px;
+            ">
+                {st.session_state.nickname}님의 분석실 💗
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     relationship_stage = st.selectbox(
         "현재 관계 단계",
@@ -391,465 +797,547 @@ with st.sidebar:
             "소개팅 전",
             "소개팅 직후",
             "연락 중",
-            "두 번째 만남 준비"
-        ]
+            "두 번째 만남 준비",
+        ],
     )
 
     reply_tone = st.selectbox(
-        "원하는 답장 분위기",
+        "추천 답장 분위기",
         [
             "부담 없게",
             "다정하게",
             "유머러스하게",
             "적극적으로",
-            "예의 바르게"
-        ]
+            "예의 바르게",
+        ],
     )
 
     st.divider()
+
+    if st.session_state.score_history:
+        average_score = round(
+            sum(st.session_state.score_history)
+            / len(st.session_state.score_history),
+            1,
+        )
+    else:
+        average_score = 0
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.metric(
             "분석 횟수",
-            st.session_state.analysis_count
+            f"{st.session_state.analysis_count}회",
         )
 
     with col2:
-        if st.session_state.score_history:
-            average_score = round(
-                sum(st.session_state.score_history)
-                / len(st.session_state.score_history)
-            )
-        else:
-            average_score = 0
-
         st.metric(
             "평균 점수",
-            f"{average_score}점"
+            f"{average_score}점",
         )
 
     st.divider()
 
-    if st.button(
-        "🗑️ 분석 기록 초기화",
-        use_container_width=True
-    ):
+    if st.button("분석 기록 초기화", use_container_width=True):
         st.session_state.messages = []
-        st.session_state.history = []
         st.session_state.score_history = []
         st.session_state.analysis_count = 0
         st.session_state.celebrated = False
         st.session_state.last_result = None
         st.rerun()
 
-    if st.button(
-        "🚪 닉네임 변경",
-        use_container_width=True
-    ):
+    if st.button("닉네임 변경", use_container_width=True):
         st.session_state.nickname = ""
         st.rerun()
 
 
 # ============================================================
-# 메인 제목
+# 상단 Hero
 # ============================================================
 st.markdown(
-    '<div class="main-title">💗 썸 시그널 분석기</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="sub-title">'
-    '메시지 하나만으로 마음을 확정할 수는 없지만, 대화 속 표현을 함께 살펴볼 수 있어요.'
-    '</div>',
-    unsafe_allow_html=True
+    """
+    <div class="hero">
+        <div class="hero-badge">LOVE SIGNAL LAB</div>
+        <div class="hero-title">
+            썸 시그널 <span>분석기</span>
+        </div>
+        <div class="hero-description">
+            말 한마디만으로 상대방의 마음을 확정할 수는 없지만,
+            대화 속 반복되는 관심과 행동의 흐름은 살펴볼 수 있어요.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
 # ============================================================
-# 탭 구성
+# 탭
 # ============================================================
 tab_analysis, tab_stats, tab_about = st.tabs(
     [
         "💌 시그널 분석",
-        "📊 분석 통계",
-        "ℹ️ 서비스 소개"
+        "📊 분석 리포트",
+        "🌷 서비스 소개",
     ]
 )
 
 
 # ============================================================
-# 탭 1: 시그널 분석
+# 시그널 분석 탭
 # ============================================================
 with tab_analysis:
+    intro_col, status_col = st.columns([2.3, 1])
 
-    st.subheader("상대방에게 받은 메시지를 입력해 주세요")
+    with intro_col:
+        st.subheader("상대방의 메시지를 분석해 보세요")
+        st.caption(
+            "받은 메시지를 그대로 입력하면 표현, 길이, 질문 여부와 "
+            "대화 흐름을 함께 분석합니다."
+        )
 
-    st.caption(
-        f"현재 단계: {relationship_stage} · "
-        f"답장 스타일: {reply_tone}"
-    )
+    with status_col:
+        st.markdown(
+            f"""
+            <div class="love-card" style="padding:16px 18px;">
+                <div style="font-size:12px; color:#a15a75; font-weight:750;">
+                    CURRENT SETTING
+                </div>
+                <div style="margin-top:6px; font-weight:750;">
+                    {relationship_stage}
+                </div>
+                <div style="font-size:13px; color:#846f78; margin-top:3px;">
+                    {reply_tone} 답장
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    # 기존 대화 기록 출력
-    for message_data in st.session_state.messages:
-
-        with st.chat_message(message_data["role"]):
-            st.markdown(message_data["content"])
-
-            if message_data.get("score") is not None:
-                st.progress(message_data["score"] / 100)
-                st.caption(
-                    f"참고용 썸 시그널 점수: "
-                    f"{message_data['score']}점"
-                )
+    for saved_message in st.session_state.messages:
+        with st.chat_message(saved_message["role"]):
+            st.markdown(saved_message["content"])
 
     user_input = st.chat_input(
         "예: 오늘 즐거웠어요! 다음에 또 같이 밥 먹어요 😊"
     )
 
     if user_input:
+        user_input = user_input.strip()
 
-        cleaned_input = clean_message(user_input)
-
-        # 사용자 메시지 저장
         st.session_state.messages.append(
             {
                 "role": "user",
-                "content": cleaned_input
+                "content": user_input,
             }
         )
 
         with st.chat_message("user"):
-            st.markdown(cleaned_input)
+            st.markdown(user_input)
 
-        # AI 분석 과정
         with st.chat_message("assistant"):
-
             with st.status(
-                "💌 메시지 속 썸 시그널을 분석하고 있어요...",
-                expanded=True
+                "메시지 속 감정과 대화 흐름을 읽고 있어요 💌",
+                expanded=True,
             ) as status:
+                st.write("문장 길이와 질문 여부를 확인하고 있어요.")
+                time.sleep(0.4)
 
-                st.write("1️⃣ 메시지의 길이와 질문 여부를 확인하고 있어요.")
-                time.sleep(0.5)
+                st.write("관심 표현과 거리감 표현을 구분하고 있어요.")
+                time.sleep(0.4)
 
-                st.write("2️⃣ 호감 표현과 거리감 표현을 찾고 있어요.")
-                time.sleep(0.5)
+                st.write("관계 단계에 맞는 답장을 준비하고 있어요.")
+                time.sleep(0.4)
 
-                st.write("3️⃣ 현재 관계 단계에 맞춰 결과를 정리하고 있어요.")
-                time.sleep(0.5)
-
-                analysis_result = analyze_signal(
-                    cleaned_input,
-                    relationship_stage
+                result = analyze_signal(
+                    user_input,
+                    relationship_stage,
                 )
 
-                recommended_reply, reply_tip = recommend_reply(
-                    cleaned_input,
+                reply, reply_tip = recommend_reply(
                     reply_tone,
                     relationship_stage,
-                    analysis_result
+                    result,
                 )
 
                 status.update(
-                    label="✅ 분석이 완료되었습니다!",
+                    label="분석이 완료되었어요 💗",
                     state="complete",
-                    expanded=False
+                    expanded=False,
                 )
 
-            # 분석 결과 화면
-            st.markdown(
-                f"""
-                <div class="signal-card">
-                    <div class="result-title">
-                        {analysis_result["emoji"]}
-                        {analysis_result["grade"]}
+            result_left, result_right = st.columns([1.2, 1.8])
+
+            with result_left:
+                render_signal_gauge(result["score"])
+
+                st.markdown(
+                    f"""
+                    <div style="text-align:center; margin-top:-10px;">
+                        <span style="
+                            display:inline-block;
+                            padding:7px 14px;
+                            border-radius:999px;
+                            background:#fff0f5;
+                            border:1px solid #f2cfdd;
+                            color:#b64a73;
+                            font-weight:750;
+                            font-size:13px;
+                        ">
+                            {result["signal_level"]}
+                        </span>
                     </div>
-                    <p>{analysis_result["summary"]}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            with result_right:
+                st.markdown(
+                    f"""
+                    <div class="result-card">
+                        <div class="result-label">ANALYSIS RESULT</div>
+                        <div class="result-grade">
+                            {result["emoji"]} {result["grade"]}
+                        </div>
+                        <p class="result-summary">
+                            {result["summary"]}
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                st.caption(
+                    "점수는 메시지 표현을 시각화한 참고값이며 "
+                    "상대방의 실제 감정을 확정하지 않습니다."
+                )
+
+            st.markdown("### 시그널 구성 요소")
+
+            category_data = pd.DataFrame(
+                {
+                    "분석 요소": list(result["category_scores"].keys()),
+                    "점수": list(result["category_scores"].values()),
+                }
             )
 
-            st.metric(
-                "참고용 썸 시그널 점수",
-                f"{analysis_result['score']}점"
+            st.bar_chart(
+                category_data,
+                x="분석 요소",
+                y="점수",
+                horizontal=True,
+                height=280,
             )
 
-            st.progress(analysis_result["score"] / 100)
+            st.caption(
+                "대화 지속성은 질문과 다음 약속 표현, 관심 표현은 직접적인 "
+                "관심 단어, 정서적 온도는 웃음·이모지·감탄 표현을 반영합니다."
+            )
 
-            col1, col2 = st.columns(2)
+            st.divider()
 
-            with col1:
+            signal_col1, signal_col2 = st.columns(2)
+
+            with signal_col1:
                 st.markdown("#### 💗 긍정적으로 볼 수 있는 표현")
 
-                if analysis_result["positive_signals"]:
-                    for signal in analysis_result["positive_signals"]:
-                        st.success(signal)
+                if result["positive_signals"]:
+                    for signal in result["positive_signals"]:
+                        render_signal_chip(signal, "positive")
                 else:
-                    st.info(
-                        "뚜렷한 긍정 표현은 발견되지 않았습니다."
+                    render_signal_chip(
+                        "뚜렷한 긍정 표현은 아직 발견되지 않았어요.",
+                        "neutral",
                     )
 
-            with col2:
+            with signal_col2:
                 st.markdown("#### 🔍 조금 더 살펴볼 부분")
 
-                if analysis_result["caution_signals"]:
-                    for signal in analysis_result["caution_signals"]:
-                        st.warning(signal)
+                if result["caution_signals"]:
+                    for signal in result["caution_signals"]:
+                        render_signal_chip(signal, "caution")
                 else:
-                    st.info(
-                        "특별히 주의할 표현은 발견되지 않았습니다."
+                    render_signal_chip(
+                        "특별히 주의할 표현은 발견되지 않았어요.",
+                        "neutral",
                     )
 
-            st.markdown("#### ✉️ 추천 답장")
+            st.divider()
 
-            st.code(
-                recommended_reply,
-                language=None
+            st.markdown("### 💌 추천 답장")
+
+            st.markdown(
+                f"""
+                <div class="reply-card">
+                    {reply}
+                </div>
+                <div class="tip-card">
+                    <strong>답장 포인트</strong><br>
+                    {reply_tip}
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
-            st.caption(f"💡 답장 팁: {reply_tip}")
-
-            st.info(
-                "이 결과는 메시지 표현을 기반으로 한 참고용 분석입니다. "
-                "상대방의 실제 감정이나 의도를 확정하지 않습니다."
-            )
-
-            # AI 메시지 저장용 콘텐츠
             assistant_content = f"""
-### {analysis_result["emoji"]} {analysis_result["grade"]}
+### {result["emoji"]} {result["grade"]}
 
-**썸 시그널 점수:** {analysis_result["score"]}점
+**썸 시그널 점수: {result["score"]}점**
 
-{analysis_result["summary"]}
+{result["summary"]}
 
-#### ✉️ 추천 답장
+#### 추천 답장
 
-> {recommended_reply}
+> {reply}
 
-💡 **답장 팁:** {reply_tip}
+💡 **답장 포인트:** {reply_tip}
 """
 
-        # AI 응답 저장
         st.session_state.messages.append(
             {
                 "role": "assistant",
                 "content": assistant_content,
-                "score": analysis_result["score"]
             }
         )
 
-        # 통계 저장
         st.session_state.analysis_count += 1
+        st.session_state.score_history.append(result["score"])
+        st.session_state.last_result = result
 
-        st.session_state.history.append(
-            st.session_state.analysis_count
-        )
-
-        st.session_state.score_history.append(
-            analysis_result["score"]
-        )
-
-        st.session_state.last_result = analysis_result
-
-        # 분석 5회 달성 시 풍선 효과
         if (
             st.session_state.analysis_count >= 5
             and not st.session_state.celebrated
         ):
             st.balloons()
-            st.success(
-                "🎉 썸 시그널을 5번 분석했어요! "
-                "이제 메시지의 흐름도 함께 살펴보세요."
+            st.toast(
+                "벌써 5번이나 분석했어요! 메시지 한 번보다 전체 흐름을 봐주세요 💗"
             )
             st.session_state.celebrated = True
 
 
 # ============================================================
-# 탭 2: 분석 통계
+# 분석 리포트 탭
 # ============================================================
 with tab_stats:
-
-    st.subheader("📊 나의 썸 시그널 분석 기록")
+    st.subheader("나의 썸 시그널 리포트")
+    st.caption(
+        "분석 결과를 회차별로 비교해 관계의 흐름을 살펴볼 수 있어요."
+    )
 
     if not st.session_state.score_history:
-        st.info(
-            "아직 분석 기록이 없습니다. "
-            "상대방의 메시지를 분석하면 통계가 표시됩니다."
+        st.markdown(
+            """
+            <div class="love-card" style="text-align:center; padding:45px 20px;">
+                <div style="font-size:42px; margin-bottom:12px;">🌷</div>
+                <div style="font-size:19px; font-weight:800;">
+                    아직 분석 기록이 없어요
+                </div>
+                <div style="color:#88717b; margin-top:8px;">
+                    메시지를 분석하면 이곳에 변화 그래프가 나타납니다.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
     else:
-        total_count = st.session_state.analysis_count
-        latest_score = st.session_state.score_history[-1]
-        average_score = round(
-            sum(st.session_state.score_history)
-            / len(st.session_state.score_history),
-            1
-        )
-        highest_score = max(st.session_state.score_history)
+        scores = st.session_state.score_history
+
+        average_score = round(sum(scores) / len(scores), 1)
+        highest_score = max(scores)
+        latest_score = scores[-1]
+
+        if len(scores) >= 2:
+            score_change = scores[-1] - scores[-2]
+        else:
+            score_change = 0
 
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.metric(
-                "총 분석 횟수",
-                f"{total_count}회"
+                "총 분석",
+                f"{len(scores)}회",
             )
 
         with col2:
             st.metric(
-                "최근 점수",
-                f"{latest_score}점"
+                "최근 시그널",
+                f"{latest_score}점",
+                delta=f"{score_change:+d}점",
             )
 
         with col3:
             st.metric(
-                "평균 점수",
-                f"{average_score}점"
+                "평균 시그널",
+                f"{average_score}점",
             )
 
         with col4:
             st.metric(
-                "최고 점수",
-                f"{highest_score}점"
+                "최고 시그널",
+                f"{highest_score}점",
             )
 
-        st.divider()
+        st.markdown("### 회차별 시그널 변화")
 
-        # 데이터프레임 생성
-        chart_data = pd.DataFrame(
+        line_data = pd.DataFrame(
             {
-                "분석 회차": list(
-                    range(
-                        1,
-                        len(st.session_state.score_history) + 1
-                    )
-                ),
-                "썸 시그널 점수": st.session_state.score_history
+                "분석 회차": [
+                    f"{index}회"
+                    for index in range(1, len(scores) + 1)
+                ],
+                "시그널 점수": scores,
             }
         )
 
-        st.markdown("### 💓 분석 회차별 시그널 점수")
-
         st.line_chart(
-            chart_data,
+            line_data,
             x="분석 회차",
-            y="썸 시그널 점수"
+            y="시그널 점수",
+            height=350,
         )
 
-        st.markdown("### 📋 분석 기록")
+        st.markdown("### 시그널 단계 분포")
 
-        display_data = chart_data.copy()
-        display_data["판정"] = display_data[
-            "썸 시그널 점수"
-        ].apply(
-            lambda score:
-            "매우 긍정적"
-            if score >= 85
-            else "긍정적"
-            if score >= 70
-            else "관찰 필요"
-            if score >= 55
-            else "중립"
-            if score >= 40
-            else "거리감 가능"
+        level_counts = {
+            "강한 관심": sum(score >= 85 for score in scores),
+            "긍정적": sum(70 <= score < 85 for score in scores),
+            "관찰 필요": sum(55 <= score < 70 for score in scores),
+            "중립": sum(40 <= score < 55 for score in scores),
+            "거리감 가능": sum(score < 40 for score in scores),
+        }
+
+        level_data = pd.DataFrame(
+            {
+                "시그널 단계": list(level_counts.keys()),
+                "분석 횟수": list(level_counts.values()),
+            }
         )
+
+        st.bar_chart(
+            level_data,
+            x="시그널 단계",
+            y="분석 횟수",
+            height=300,
+        )
+
+        report_data = pd.DataFrame(
+            {
+                "회차": list(range(1, len(scores) + 1)),
+                "점수": scores,
+            }
+        )
+
+        report_data["판정"] = report_data["점수"].apply(
+            lambda score: (
+                "강한 관심"
+                if score >= 85
+                else "긍정적"
+                if score >= 70
+                else "관찰 필요"
+                if score >= 55
+                else "중립"
+                if score >= 40
+                else "거리감 가능"
+            )
+        )
+
+        st.markdown("### 분석 기록")
 
         st.dataframe(
-            display_data,
+            report_data,
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
         )
 
-        st.caption(
-            "점수의 한 번 한 번보다 여러 메시지에서 나타나는 "
-            "전체적인 변화와 대화 흐름을 살펴보는 것이 더 중요합니다."
+        st.info(
+            "한 번의 높은 점수보다 관심 표현이 여러 대화에서 "
+            "일관되게 반복되는지가 더 중요합니다."
         )
 
 
 # ============================================================
-# 탭 3: 서비스 소개
+# 서비스 소개 탭
 # ============================================================
 with tab_about:
-
-    st.subheader("💗 썸 시그널 분석기란?")
-
     st.markdown(
         """
-        **썸 시그널 분석기**는 소개팅 전후에 받은 메시지를 분석하여
-        대화 속 긍정적인 표현과 주의해서 살펴볼 표현을 알려주는
-        Streamlit 기반 커뮤니케이션 서비스입니다.
-
-        상대방의 메시지를 입력하면 다음 내용을 확인할 수 있습니다.
-
-        - 메시지 속 호감 표현 탐색
-        - 질문 여부와 메시지 길이 분석
-        - 참고용 썸 시그널 점수 제공
-        - 관계 단계와 말투에 맞는 답장 추천
-        - 분석 점수 변화 통계 제공
-        """
+        <div class="love-card">
+            <div style="
+                color:#b54b74;
+                font-size:13px;
+                font-weight:800;
+                letter-spacing:.06em;
+            ">
+                ABOUT THIS PROJECT
+            </div>
+            <div style="
+                font-size:27px;
+                font-weight:850;
+                margin-top:7px;
+                letter-spacing:-.04em;
+            ">
+                대화 속 작은 관심을 시각적으로 보여주는 서비스
+            </div>
+            <div style="
+                color:#76636b;
+                margin-top:12px;
+                line-height:1.8;
+            ">
+                썸 시그널 분석기는 소개팅 전후의 메시지를 분석하여
+                대화 지속성, 관심 표현, 정서적인 온도와 구체성을
+                직관적으로 보여주는 Streamlit 교육용 프로젝트입니다.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-
-    st.divider()
-
-    st.markdown("### 🛠️ 프로젝트에 사용된 기술")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown(
-            """
-            #### Streamlit 기능
+        st.markdown("### 핵심 기능")
 
-            - `st.session_state`
-            - `st.chat_message`
-            - `st.chat_input`
-            - `st.status`
-            - `st.tabs`
-            - `st.sidebar`
-            - `st.metric`
-            - `st.line_chart`
-            - `st.progress`
-            - `st.balloons`
-            """
+        render_signal_chip(
+            "메시지 속 관심 표현과 거리감 표현 분석",
+            "positive",
+        )
+        render_signal_chip(
+            "원형 게이지로 썸 시그널 점수 시각화",
+            "positive",
+        )
+        render_signal_chip(
+            "분석 요소별 막대그래프 제공",
+            "positive",
+        )
+        render_signal_chip(
+            "말투와 관계 단계에 맞는 답장 추천",
+            "positive",
         )
 
     with col2:
-        st.markdown(
-            """
-            #### Python 기능
+        st.markdown("### 사용 기술")
 
-            - 함수 정의
-            - 조건문
-            - 반복문
-            - 딕셔너리
-            - 리스트
-            - 문자열 분석
-            - 예외 상황 처리
-            - Pandas 데이터프레임
-            """
+        render_signal_chip(
+            "Streamlit session_state와 챗봇 UI",
+            "neutral",
+        )
+        render_signal_chip(
+            "조건문과 키워드 기반 텍스트 분석",
+            "neutral",
+        )
+        render_signal_chip(
+            "Pandas 데이터프레임과 차트",
+            "neutral",
+        )
+        render_signal_chip(
+            "CSS를 활용한 반응형 UI 디자인",
+            "neutral",
         )
 
-    st.divider()
-
-    st.markdown("### ⚠️ 이용 안내")
-
     st.warning(
-        "본 서비스는 메시지의 단어와 문장 구조를 기준으로 분석하는 "
-        "교육용 프로젝트입니다. 상대방의 실제 마음이나 관계의 성공 여부를 "
-        "판단하거나 보장하지 않습니다."
-    )
-
-    st.markdown(
-        """
-        좋은 관계에서는 특정 메시지 하나보다 다음 요소가 더 중요합니다.
-
-        - 서로의 의사를 존중하는 태도
-        - 일관된 관심과 행동
-        - 부담스럽지 않은 소통
-        - 명확하고 솔직한 표현
-        """
+        "본 서비스는 교육용 키워드 분석 프로젝트입니다. "
+        "상대방의 감정이나 관계의 성공 가능성을 확정하거나 보장하지 않습니다."
     )
